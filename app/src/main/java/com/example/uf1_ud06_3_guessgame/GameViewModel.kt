@@ -1,3 +1,4 @@
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class GameViewModel: ViewModel() {
@@ -6,21 +7,23 @@ class GameViewModel: ViewModel() {
     val words = listOf("Android", "Fragment", "Kotlin", "Model","Mapache")
     var secretWord  = words.random().uppercase()
     // String que se mostrará en la pantalla (guiones y letras a medida que las vamos descubriendo)
-    var secretWordDisplay = ""
+    var secretWordDisplay = MutableLiveData<String>()
     // Intentos del usuario. Caracteres que vaya probando el usuario.
     var guesses = mutableListOf<Char>()
     // Vidas
-    var lives = 3
+    var lives = MutableLiveData<Int>(3)
+
+    var clearInput = MutableLiveData<Unit>()
 
     init {
         // Inicializamos la palabra con _
-        secretWordDisplay = generateSecretWordDisplay()
+        secretWordDisplay.value = generateSecretWordDisplay()
     }
     fun restart() {
         guesses.clear()
-        lives = 8
+        lives = MutableLiveData<Int>(3)
         secretWord = words.random().uppercase()
-        secretWordDisplay = generateSecretWordDisplay()
+        secretWordDisplay.value = generateSecretWordDisplay()
     }
 
     fun resultMessage() =
@@ -45,13 +48,15 @@ class GameViewModel: ViewModel() {
             // La añadimos a la lista de intentos
             guesses.add(letter)
 
-            secretWordDisplay = generateSecretWordDisplay()
-            if(!secretWord.contains(letter)) lives -= 1
+            secretWordDisplay.value = generateSecretWordDisplay()
+            if(!secretWord.contains(letter))
+                lives.value = lives.value?.minus(1)
+            clearInput.value=Unit
         }
     }
 
     // Función para verificar si ganamos
-    fun win() = secretWord == secretWordDisplay
+    fun win() = secretWord == secretWordDisplay.value
     // Función para comprobar si nos quedan vidas
-    fun lost() = lives <= 0
+    fun lost() = (lives.value ?: 0) <= 0
 }

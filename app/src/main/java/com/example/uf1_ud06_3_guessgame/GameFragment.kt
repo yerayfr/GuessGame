@@ -7,6 +7,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
 import com.example.uf1_ud06_3_guessgame.databinding.FragmentGameBinding
 import com.google.android.material.snackbar.Snackbar
@@ -31,7 +34,18 @@ class GameFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        updateScreen()
+
+        val wordObserver = Observer<String>{newWord ->
+            binding.txtWord.text = newWord
+        }
+        val livesObserver = Observer<Int>{newLives ->
+            binding.txtLives.text = "Te quedan $newLives vidas"
+        }
+        model.secretWordDisplay.observe(viewLifecycleOwner, wordObserver)
+        model.lives.observe(viewLifecycleOwner, livesObserver)
+        model.clearInput.observe(viewLifecycleOwner){
+            binding.txtGuess.text.clear()
+        }
 
         binding.buttonNext.setOnClickListener {
             //model.secretWord = "Prueba de modelo"
@@ -39,7 +53,7 @@ class GameFragment : Fragment() {
                 //Comprobar la letra introducida
                 model.makeGuess(binding.txtGuess.text.toString())
                 //Actualizamos la pantalla
-                updateScreen()
+                //  updateScreen()
                 //Si acertamos la palabra o nos quedamos sin vidas
                 if (model.win() || model.lost())
                     view.findNavController().navigate(R.id.action_gameFragment_to_resultFragment)
@@ -49,11 +63,11 @@ class GameFragment : Fragment() {
             }
         }
     }
-    fun updateScreen(){
-        binding.txtWord.text = model.secretWordDisplay
-        binding.txtLives.text = "Te quedan ${model.lives} vidas"
-        binding.txtGuess.text = null
-    }
+    //fun updateScreen(){
+      //  binding.txtWord.text = model.secretWordDisplay as CharSequence
+        //binding.txtLives.text = "Te quedan ${model.lives} vidas"
+        //binding.txtGuess.text = null
+    //}
 
     override fun onDestroyView() {
         super.onDestroyView()
